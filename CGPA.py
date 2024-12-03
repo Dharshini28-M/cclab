@@ -1,18 +1,26 @@
-def cgpa_calculator():
-    num_subjects = int(input("Enter the number of subjects: "))
-    
-    total_credits = 0
-    weighted_grade_points = 0
-    
-    for i in range(num_subjects):
-        print(f"Subject {i+1}:")
-        credits = float(input("Enter the number of credits: "))
-        grade_point = float(input("Enter the grade point (on a scale of 10): "))
-        
-        total_credits += credits
-        weighted_grade_points += grade_point * credits
-    
-    cgpa = weighted_grade_points / total_credits
-    print(f"Your CGPA is: {cgpa:.2f}")
+from flask import Flask, request
 
-cgpa_calculator()
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '''
+        <form action="/calculate" method="post">
+            Grades (comma-separated): <input type="text" name="grades"><br>
+            <input type="submit" value="Calculate CGPA">
+        </form>
+    '''
+
+@app.route('/calculate', methods=['POST'])
+def calculate():
+    try:
+        grades = list(map(float, request.form['grades'].split(',')))
+        if not grades:
+            return "Please enter at least one grade."
+        cgpa = sum(grades) / len(grades)
+        return f"CGPA: {cgpa:.2f}"
+    except ValueError:
+        return "Invalid input. Please enter numeric grades separated by commas."
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
